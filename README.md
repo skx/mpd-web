@@ -1,9 +1,9 @@
 # mpd-web
 
-This repository contains a simple HTTP-server which allows *basic* control of an [mpd](https://www.musicpd.org/).
+This repository contains a simple HTTP-server which allows *basic* control of an [mpd](https://www.musicpd.org/) server running upon localhost:
 
-* Move to the next track
-* Move to the previous track
+* Move to the next track.
+* Move to the previous track.
 * Stop playback, and restart it.
 
 
