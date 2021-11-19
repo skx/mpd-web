@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+ <html lang="en">
+  <meta charset="UTF-8">
+  <title>MPD</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="refresh" content="3">
+ </head>
+ <body>
+  <h1>mpd</h1>
+{{if .Playing }}
+   <p>Currently playing {{.Artist}} {{.Title}}.</p>
+{{end}}
+  <p><ul>
+   <li><a href="/prev">Previous</a></li>
+   <li><a href="/next">Next</a></li>
+   {{if .Playing}}
+     <li>Play</li>
+     <li><a href="/stop">Stop</a></li>
+   {{else}}
+     <li><a href="/play">Play</a></li>
+     <li>Stop</li>
+   {{end}}
+  </ul></p>
+ </body>
+</html>

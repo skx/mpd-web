@@ -32,6 +32,8 @@ Otherwise clone [this repository](https://github.com/skx/mpd-web) and build/inst
     $ go build .
     $ go install .
 
+**NOTE**: As we embed our [simple web template](web/index.html) within our binary you must use go version 1.17, or higher, to build this service.
+
 
 
 ## Configuration

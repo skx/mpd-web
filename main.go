@@ -1,8 +1,10 @@
 // Trivial HTTP <-> MPD gateway.
+
 package main
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"html/template"
 	"io"
@@ -12,6 +14,9 @@ import (
 
 	"github.com/fhs/gompd/mpd"
 )
+
+//go:embed web/index.html
+var indexTemplate string
 
 //Define a map to implement routing table.
 var mux map[string]func(http.ResponseWriter, *http.Request)
@@ -67,32 +72,6 @@ func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // a basic GUI.
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
-	src := `<!DOCTYPE html>
- <html lang="en">
-  <meta charset="UTF-8">
-  <title>MPD</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="refresh" content="3">
- </head>
- <body>
-  <h1>mpd</h1>
-{{if .Playing }}
-   <p>Currently playing {{.Artist}} {{.Title}}.</p>
-{{end}}
-  <p><ul>
-   <li><a href="/prev">Previous</a></li>
-   <li><a href="/next">Next</a></li>
-   {{if .Playing}}
-     <li>Play</li>
-     <li><a href="/stop">Stop</a></li>
-   {{else}}
-     <li><a href="/play">Play</a></li>
-     <li>Stop</li>
-   {{end}}
-  </ul></p>
- </body>
-</html>`
-
 	// Pagedata is a structure which is used to add
 	// dynamic data to our template.
 	type Pagedata struct {
@@ -131,7 +110,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	t := template.Must(template.New("tmpl").Parse(src))
+	t := template.Must(template.New("tmpl").Parse(indexTemplate))
 
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, x)
