@@ -85,50 +85,54 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		Title string
 	}
 
-	// Create an instance of the pagedata, object, and
-	// try to fill with the currently-playing details.
+	// Create an instance of the pagedata to populate our
+	// template with.
 	x := Pagedata{Artist: "", Title: "", Playing: false}
 
-	// Get the connection
+	// Try to get the currently-playing track, and
+	// update our structure with it.
 	client, err := mpd.Dial("tcp", "localhost:6600")
 	if err == nil {
+
+		// If we can connect
 		defer client.Close()
 
-		status, err := client.Status()
+		var status mpd.Attrs
+		status, err = client.Status()
 		if err == nil {
-			song, err := client.CurrentSong()
+
+			// If we got the status of the server
+			var song mpd.Attrs
+			song, err = client.CurrentSong()
 			if err == nil {
+
+				// If we found a current song
 				if status["state"] == "play" {
+
+					// Populate details
 					x.Artist = song["Artist"]
 					x.Title = song["Title"]
 					x.Playing = true
-				} else {
-					x.Artist = ""
-					x.Title = ""
 				}
 			}
 		}
 	}
 
+	// Parse our (embedded) template.
 	t := template.Must(template.New("tmpl").Parse(indexTemplate))
 
+	// Execute the template into a buffer.
 	buf := &bytes.Buffer{}
 	err = t.Execute(buf, x)
 
-	//
 	// If there were errors, then show them.
 	if err != nil {
 		fmt.Fprint(w, err.Error())
 		return
 	}
 
-	//
-	// Otherwise write the result.
-	//
+	// Otherwise serve the result to the client.
 	buf.WriteTo(w)
-
-	return
-
 }
 
 // handle returns an MPD client handle
