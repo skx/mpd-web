@@ -4,6 +4,31 @@
   <title>MPD</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="refresh" content="3">
+  <style>
+   ul {
+     width:100%
+     list-style-type: none;
+     list-style: none;
+     margin: 0;
+     padding: 0;
+     overflow: hidden;
+   }
+   li {
+     width:20%;
+     float: left;
+     border: 1px solid silver;
+   }
+   li:hover {
+     border: 1px solid black;
+   }
+   li a {
+     display: block;
+     font-weight: bold;
+     text-align: center;
+     padding: 16px;
+     text-decoration: none;
+   }
+  </style>
  </head>
  <body>
   <h1>mpd</h1>
@@ -18,13 +43,8 @@
   <p><ul>
    <li><a href="/prev">Previous</a></li>
    <li><a href="/next">Next</a></li>
-   {{if .Playing}}
-     <li>Play</li>
-     <li><a href="/stop">Stop</a></li>
-   {{else}}
-     <li><a href="/play">Play</a></li>
-     <li>Stop</li>
-   {{end}}
+   <li><a href="/play">Play</a></li>
+   <li><a href="/stop">Stop</a></li>
   </ul></p>
  </body>
 </html>
