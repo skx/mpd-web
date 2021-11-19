@@ -7,9 +7,14 @@
  </head>
  <body>
   <h1>mpd</h1>
-{{if .Playing }}
-   <p>Currently playing {{.Artist}} {{.Title}}.</p>
-{{end}}
+  {{if .Playing }}
+    <!-- We could have used `if len .Title ..` but this is cleaner -->
+    {{if .Populated }}
+      <p>Currently playing {{.Artist}}: {{.Title}}.</p>
+    {{ else }}
+      <p>Currently playing {{.File}}.</p>
+    {{end}}
+  {{end}}
   <p><ul>
    <li><a href="/prev">Previous</a></li>
    <li><a href="/next">Next</a></li>

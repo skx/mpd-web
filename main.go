@@ -75,11 +75,21 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	// Pagedata is a structure which is used to add
 	// dynamic data to our template.
 	type Pagedata struct {
+
+		// Name of album
+		Album string
+
 		// Name of artist
 		Artist string
 
+		// Filename of track
+		File string
+
 		// Are we playing?
 		Playing bool
+
+		// Do we have a valid artist/title tag?
+		Populated bool
 
 		// Song title
 		Title string
@@ -110,8 +120,12 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 				if status["state"] == "play" {
 
 					// Populate details
+					x.Album = song["Album"]
 					x.Artist = song["Artist"]
+					x.File = song["file"]
 					x.Title = song["Title"]
+
+					x.Populated = (len(x.Artist) > 0 && len(x.Title) > 0)
 					x.Playing = true
 				}
 			}
