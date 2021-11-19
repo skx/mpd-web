@@ -1,9 +1,10 @@
-// Trivial HTTP <-> MPD gateway
+// Trivial HTTP <-> MPD gateway.
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"html"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -31,6 +32,7 @@ func main() {
 	mux["/play"] = PlayHandler
 	mux["/prev"] = PrevHandler
 	mux["/stop"] = StopHandler
+	mux["/"] = IndexHandler
 
 	//
 	// Start the server
@@ -50,13 +52,22 @@ type myHandler struct{}
 // ServeHTTP delegates an incoming request to the appropriate handler,
 // if one has been setup, otherwise shows the server-status
 func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	// Forward to the handler, if it exists
 	if h, ok := mux[r.URL.String()]; ok {
 		h(w, r)
 		return
 	}
 
-	htmlHeader := `
-<!DOCTYPE html>
+	// Otherwise we've hit a route we don't know.
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+// IndexHandler shows the current state of the server, and returns
+// a basic GUI.
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+
+	src := `<!DOCTYPE html>
  <html lang="en">
   <meta charset="UTF-8">
   <title>MPD</title>
@@ -64,10 +75,42 @@ func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   <meta http-equiv="refresh" content="3">
  </head>
  <body>
-  <h1>mpd</h1>`
+  <h1>mpd</h1>
+{{if .Playing }}
+   <p>Currently playing {{.Artist}} {{.Title}}.</p>
+{{end}}
+  <p><ul>
+   <li><a href="/prev">Previous</a></li>
+   <li><a href="/next">Next</a></li>
+   {{if .Playing}}
+     <li>Play</li>
+     <li><a href="/stop">Stop</a></li>
+   {{else}}
+     <li><a href="/play">Play</a></li>
+     <li>Stop</li>
+   {{end}}
+  </ul></p>
+ </body>
+</html>`
 
-	htmlMiddle := ``
+	// Pagedata is a structure which is used to add
+	// dynamic data to our template.
+	type Pagedata struct {
+		// Name of artist
+		Artist string
 
+		// Are we playing?
+		Playing bool
+
+		// Song title
+		Title string
+	}
+
+	// Create an instance of the pagedata, object, and
+	// try to fill with the currently-playing details.
+	x := Pagedata{Artist: "", Title: "", Playing: false}
+
+	// Get the connection
 	client, err := mpd.Dial("tcp", "localhost:6600")
 	if err == nil {
 		defer client.Close()
@@ -77,25 +120,36 @@ func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			song, err := client.CurrentSong()
 			if err == nil {
 				if status["state"] == "play" {
-					htmlMiddle = fmt.Sprintf("Playing %s - %s", html.EscapeString(song["Artist"]), html.EscapeString(song["Title"]))
+					x.Artist = song["Artist"]
+					x.Title = song["Title"]
+					x.Playing = true
 				} else {
-					htmlMiddle = fmt.Sprintf("State: %s", status["state"])
+					x.Artist = ""
+					x.Title = ""
 				}
 			}
 		}
 	}
 
-	htmlFooter := `
-<p><ul>
-<li><a href="/prev">Previous</a></li>
-<li><a href="/next">Next</a></li>
-<li><a href="/play">Play</a></li>
-<li><a href="/stop">Stop</a></li>
-</ul></p>
-</body></html>`
+	t := template.Must(template.New("tmpl").Parse(src))
 
-	// Unhandled - show the defualt
-	io.WriteString(w, htmlHeader+htmlMiddle+htmlFooter)
+	buf := &bytes.Buffer{}
+	err = t.Execute(buf, x)
+
+	//
+	// If there were errors, then show them.
+	if err != nil {
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	//
+	// Otherwise write the result.
+	//
+	buf.WriteTo(w)
+
+	return
+
 }
 
 // handle returns an MPD client handle
