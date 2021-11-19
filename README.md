@@ -42,6 +42,17 @@ There are zero configuration options; the server defaults to serving on port 888
 
 
 
+## Implementation
+
+* [main.go](main.go) configures some HTTP-routes, and starts the HTTP-server
+  * No command-line parsing/handling.
+* [http.go](http.go) contains the HTTP-handlers.
+  * These trigger actions against the MPD server
+* [embed.go](embed.go) is a helper which embeds the `text/template` file served.
+  * No real code here.
+* [web/index.html](web/index.html) is the HTML-template served when the user visits http://127.0.0.1:8888/
+
+
 ## Bugs?
 
 Report as you see them :)
