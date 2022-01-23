@@ -21,8 +21,10 @@ func invokeMPD(fnc Signature) error {
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+
+	// Invoke the callback function, then close the connection
 	err = fnc(client)
+	client.Close()
 	return err
 }
 

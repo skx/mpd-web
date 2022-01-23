@@ -51,8 +51,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	// with the appropriate data.
 	_ = invokeMPD(func(c *mpd.Client) error {
 
-		defer c.Close()
-
 		// Get the status of the server
 		status, err := c.Status()
 		if err != nil {
