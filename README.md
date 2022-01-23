@@ -32,7 +32,9 @@ Otherwise clone [this repository](https://github.com/skx/mpd-web) and build/inst
     $ go build .
     $ go install .
 
-**NOTE**: As we embed our [simple web template](web/index.html) within our binary you must use go version 1.17, or higher, to build this service.
+You can see a simple installation-recipe, which launches this as a user-service via systemd in [install](install) - You should read the contents before blindly executing it!
+
+**NOTE**: The embedded [HTML template](web/index.html) we use for our UI requires the use of go version 1.17, or higher, to build this service.
 
 
 

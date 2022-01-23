@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Build and install this application as a user-service
+#
+
+
+# Build & install to $GOPATH/bin
+go build .
+go install .
+
+# Ensure we have the directory
+mkdir -p ~/.config/systemd/user/
+
+# Create the file
+cat > ~/.config/systemd/user/mpd-web.service<<EOF
+[Unit]
+Description=Music Player Daemon Control via Browser
+
+[Service]
+ExecStart=${GOPATH}/bin/mpd-web
+
+[Install]
+WantedBy=default.target
+EOF
+
+# Reload the daemon, since we might be reinstalling
+systemctl --user daemon-reload
+
+# Enable, stop, and start the new service
+for action in enable stop start; do
+    systemctl --user ${action} mpd-web
+done
