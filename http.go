@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	"github.com/fhs/gompd/mpd"
 )
@@ -20,6 +21,15 @@ import (
 // `web/` in our source-repository, and embedded into a binary in `embed.go`.
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
+	// We output the files in the current playlist, which will
+	// shown.
+	type PlaylistEntry struct {
+		// pos holds the playlist position
+		Pos string
+
+		// name holds the artist/title, or filename.
+		Name string
+	}
 	// Pagedata is a structure which is used to add
 	// dynamic data to our template.
 	type Pagedata struct {
@@ -41,6 +51,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Song title
 		Title string
+
+		// Playlist has details of the playlist
+		Playlist []PlaylistEntry
 	}
 
 	// Create an instance of the pagedata to populate our
@@ -78,6 +91,34 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 			x.Playing = true
 		}
 
+		// Get details of the current playlist
+		info, err2 := c.PlaylistInfo(-1, -1)
+		if err2 != nil {
+			return err2
+		}
+
+		// For each one
+		for _, song := range info {
+
+			// Item we'll add
+			var tmp PlaylistEntry
+
+			// Get artist/title
+			Artist := song["Artist"]
+			Title := song["Title"]
+
+			// If that worked we'll save
+			if len(Artist) > 0 && len(Title) > 0 {
+				tmp.Name = Artist + " " + Title
+			} else {
+				tmp.Name = song["file"]
+			}
+			tmp.Pos = song["Pos"]
+
+			x.Playlist = append(x.Playlist, tmp)
+		}
+
+		// Add the list of tracks
 		return nil
 	})
 
@@ -122,6 +163,37 @@ func PlayHandler(w http.ResponseWriter, r *http.Request) {
 	// Play music.
 	err := invokeMPD(func(c *mpd.Client) error {
 		return c.Play(-1)
+	})
+
+	// Error in the MPD connection/action?
+	if err != nil {
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	// No error?  Return to the server root
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+// GotoHandler is invoked at /goto, and starts playing the selected song.
+func GotoHandler(w http.ResponseWriter, r *http.Request) {
+
+	queryValues := r.URL.Query()
+	id := queryValues.Get("position")
+	if id == "" {
+		fmt.Fprint(w, "Missing position parameter")
+		return
+	}
+
+	num, nErr := strconv.Atoi(id)
+	if nErr != nil {
+		fmt.Fprint(w, "Failed to convert position parameter to integer")
+		return
+	}
+
+	// Play music.
+	err := invokeMPD(func(c *mpd.Client) error {
+		return c.Play(num)
 	})
 
 	// Error in the MPD connection/action?

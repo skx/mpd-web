@@ -3,7 +3,7 @@
   <meta charset="UTF-8">
   <title>MPD</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="refresh" content="3">
+  <meta http-equiv="refresh" content="15">
   <style>
    body {
      border: 0;
@@ -59,6 +59,13 @@
    <ul>
      <li><a href="/play">Play</a></li>
      <li><a href="/stop">Stop</a></li>
-  </ul></p>
+   </ul></p>
+
+   <h2>Playlist</h2>
+   <blockquote>
+     {{range .Playlist}}
+     <p><a href="/goto?position={{.Pos}}">{{.Name}}</a></p>
+   {{end}}
+   </blockquote>
  </body>
 </html>

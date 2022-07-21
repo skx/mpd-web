@@ -5,7 +5,7 @@ This repository contains a simple HTTP-server which allows *basic* control of an
 * Move to the next track.
 * Move to the previous track.
 * Stop playback, and restart it.
-
+* Show the current playlist, and allow jumping to specific songs within it.
 
 
 ## Rational

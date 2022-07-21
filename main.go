@@ -36,6 +36,7 @@ func main() {
 	http.HandleFunc("/play", PlayHandler)
 	http.HandleFunc("/prev", PrevHandler)
 	http.HandleFunc("/stop", StopHandler)
+	http.HandleFunc("/goto", GotoHandler)
 	http.HandleFunc("/", IndexHandler)
 
 	// Start the server
