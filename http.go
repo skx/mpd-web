@@ -67,7 +67,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		// Get the status of the server
 		status, err := c.Status()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get mpd-status %s", err)
 		}
 
 		// If we got the status of the server then
@@ -75,7 +75,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		var song mpd.Attrs
 		song, err = c.CurrentSong()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get current song %s", err)
 		}
 
 		// If we're playing then we can populate
@@ -94,7 +94,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		// Get details of the current playlist
 		info, err2 := c.PlaylistInfo(-1, -1)
 		if err2 != nil {
-			return err2
+			return fmt.Errorf("failed to get current playlist %s", err2)
 		}
 
 		// For each one
@@ -154,9 +154,10 @@ func NextHandler(w http.ResponseWriter, r *http.Request) {
 		// If we're stopped then play before we jump the track
 		if stats["state"] == "stop" {
 			err = c.Play(-1)
-		}
-		if err != nil {
-			return fmt.Errorf("error starting playback when stopped %s", err.Error())
+
+			if err != nil {
+				return fmt.Errorf("error starting playback when stopped %s", err.Error())
+			}
 		}
 
 		// Now move
@@ -237,7 +238,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	err := invokeMPD(func(c *mpd.Client) error {
 		status, err := c.Status()
 		if err != nil {
-			fmt.Fprintf(w, "Failed to get status %s", err)
+			return fmt.Errorf("failed to get status %s", err)
 		}
 
 		x.Data = status
@@ -248,6 +249,9 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		// Execute the template into a buffer.
 		buf := &bytes.Buffer{}
 		err = t.Execute(buf, x)
+		if err != nil {
+			return fmt.Errorf("failed to render status template %s", err)
+		}
 
 		fmt.Fprint(w, buf)
 		return nil
@@ -276,9 +280,10 @@ func PrevHandler(w http.ResponseWriter, r *http.Request) {
 		// If we're stopped then play before we jump the track
 		if stats["state"] == "stop" {
 			err = c.Play(-1)
-		}
-		if err != nil {
-			return fmt.Errorf("error starting playback when stopped %s", err.Error())
+
+			if err != nil {
+				return fmt.Errorf("error starting playback when stopped %s", err.Error())
+			}
 		}
 
 		// Now move
