@@ -144,6 +144,22 @@ func NextHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Next track
 	err := invokeMPD(func(c *mpd.Client) error {
+
+		// Get the status
+		stats, err := c.Status()
+		if err != nil {
+			return fmt.Errorf("error getting status %s", err.Error())
+		}
+
+		// If we're stopped then play before we jump the track
+		if stats["state"] == "stop" {
+			err = c.Play(-1)
+		}
+		if err != nil {
+			return fmt.Errorf("error starting playback when stopped %s", err.Error())
+		}
+
+		// Now move
 		return c.Next()
 	})
 
@@ -206,11 +222,66 @@ func GotoHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
+func StatusHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Pagedata is a structure which is used to add
+	// dynamic data to our template.
+	type Pagedata struct {
+		Data map[string]string
+	}
+
+	// Create an instance of the pagedata to populate our
+	// template with.
+	x := Pagedata{}
+
+	err := invokeMPD(func(c *mpd.Client) error {
+		status, err := c.Status()
+		if err != nil {
+			fmt.Fprintf(w, "Failed to get status %s", err)
+		}
+
+		x.Data = status
+
+		// Parse our (embedded) template.
+		t := template.Must(template.New("tmpl").Parse(statusTemplate))
+
+		// Execute the template into a buffer.
+		buf := &bytes.Buffer{}
+		err = t.Execute(buf, x)
+
+		fmt.Fprint(w, buf)
+		return nil
+	})
+
+	// Error in the MPD connection/action?
+	if err != nil {
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+}
+
 // PrevHandler is invoked at /prev, and moves to the previous track in the playlist.
 func PrevHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Previous track
 	err := invokeMPD(func(c *mpd.Client) error {
+
+		// Get the status
+		stats, err := c.Status()
+		if err != nil {
+			return fmt.Errorf("error getting status %s", err.Error())
+		}
+
+		// If we're stopped then play before we jump the track
+		if stats["state"] == "stop" {
+			err = c.Play(-1)
+		}
+		if err != nil {
+			return fmt.Errorf("error starting playback when stopped %s", err.Error())
+		}
+
+		// Now move
 		return c.Previous()
 	})
 

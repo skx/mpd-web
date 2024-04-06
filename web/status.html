@@ -1,7 +1,7 @@
 <!DOCTYPE html>
  <html lang="en">
   <meta charset="UTF-8">
-  <title>MPD</title>
+  <title>Status</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="refresh" content="15">
   <style>
@@ -40,36 +40,26 @@
   </style>
  </head>
  <body>
-  <h1>
-  {{if .Playing }}
-    <!-- We could have used `if len .Title ..` but this is cleaner -->
-    {{if .Populated }}
-      <p>Playing {{.Artist}}: {{.Title}}.</p>
-    {{ else }}
-      <p>Playing {{.File}}.</p>
-      {{end}}
-  {{else}}
-      Stopped
-  {{end}}
-  </h1>
    <p><ul>
      <li><a href="/prev">Previous</a></li>
      <li><a href="/next">Next</a></li>
    </ul></p><p>
-   <ul>
-     <li><a href="/play">Play</a></li>
-     <li><a href="/stop">Stop</a></li>
-   </ul></p><p>
-   <ul>
-     <li><a href="/">Index</a></li>
-     <li><a href="/status">Status</a></li>
-   </ul></p>
+     <ul>
+       <li><a href="/play">Play</a></li>
+       <li><a href="/stop">Stop</a></li>
+     </ul></p><p>
+     <ul>
+       <li><a href="/">Index</a></li>
+       <li><a href="/status">Status</a></li>
+     </ul></p>
 
-      <h2>Playlist</h2>
+   <h2>Status</h2>
    <blockquote>
-     {{range .Playlist}}
-     <p><a href="/goto?position={{.Pos}}">{{.Name}}</a></p>
-   {{end}}
+     <table>
+       {{ range $key, $element := .Data }}
+       <tr><td>{{ $key }}</td><td>{{ $element }}</td></tr>
+       {{ end }}
+     </table>
    </blockquote>
  </body>
 </html>

@@ -9,3 +9,6 @@ import (
 
 //go:embed web/index.html
 var indexTemplate string
+
+//go:embed web/status.html
+var statusTemplate string
